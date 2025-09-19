@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram WebApp</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .header p {
+            color: var(--tg-theme-hint-color, #999999);
+            font-size: 16px;
+        }
+        
+        .button {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: opacity 0.2s;
+        }
+        
+        .button:hover {
+            opacity: 0.8;
+        }
+        
+        .button:active {
+            opacity: 0.6;
+        }
+        
+        .secondary-button {
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .info-card {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .info-card h3 {
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .info-card p {
+            color: var(--tg-theme-hint-color, #666666);
+            line-height: 1.5;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Telegram WebApp</h1>
+            <p>Добро пожаловать в веб-приложение!</p>
+        </div>
+        
+        <div class="info-card">
+            <h3>📱 Информация о приложении</h3>
+            <p>Это веб-приложение интегрировано с Telegram и может использовать все возможности Telegram WebApp API.</p>
+        </div>
+        
+        <button class="button" onclick="openWebApp()">
+            🌐 Открыть встроенный сайт
+        </button>
+        
+        <button class="button secondary-button" onclick="showUserInfo()">
+            👤 Информация о пользователе
+        </button>
+        
+        <button class="button secondary-button" onclick="testAPI()">
+            🔧 Тест API
+        </button>
+        
+        <div id="status"></div>
+        
+        <div class="info-card">
+            <h3>ℹ️ Возможности</h3>
+            <p>• Доступ к данным пользователя Telegram<br>
+            • Интеграция с Telegram API<br>
+            • Адаптивный дизайн<br>
+            • Встроенный сайт app.cr.bot</p>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        
+        // Расширяем приложение на весь экран
+        tg.expand();
+        
+        // Настраиваем главную кнопку
+        tg.MainButton.setText("Готово");
+        tg.MainButton.show();
+        
+        // Обработчик нажатия главной кнопки
+        tg.MainButton.onClick(function() {
+            tg.close();
+        });
+        
+        // Функция для открытия встроенного сайта
+        function openWebApp() {
+            // В реальном приложении здесь будет переход к встроенному сайту
+            showStatus("Переход к встроенному сайту...", "success");
+            
+            // Имитация загрузки
+            setTimeout(() => {
+                // Здесь можно открыть iframe с сайтом или перенаправить
+                window.location.href = '/webapp';
+            }, 1000);
+        }
+        
+        // Функция для показа информации о пользователе
+        function showUserInfo() {
+            const user = tg.initDataUnsafe?.user;
+            
+            if (user) {
+                const userInfo = `
+                    <div class="info-card">
+                        <h3>👤 Информация о пользователе</h3>
+                        <p><strong>ID:</strong> ${user.id}</p>
+                        <p><strong>Имя:</strong> ${user.first_name} ${user.last_name || ''}</p>
+                        <p><strong>Username:</strong> @${user.username || 'не указан'}</p>
+                        <p><strong>Язык:</strong> ${user.language_code}</p>
+                    </div>
+                `;
+                document.getElementById('status').innerHTML = userInfo;
+            } else {
+                showStatus("Информация о пользователе недоступна", "error");
+            }
+        }
+        
+        // Функция для тестирования API
+        async function testAPI() {
+            try {
+                showStatus("Тестирование API...", "success");
+                
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    showStatus("✅ API работает корректно!", "success");
+                } else {
+                    showStatus("❌ Ошибка API", "error");
+                }
+            } catch (error) {
+                showStatus("❌ Ошибка подключения к API", "error");
+            }
+        }
+        
+        // Функция для показа статуса
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            // Автоматически скрыть статус через 3 секунды
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Обработчик изменения темы
+        tg.onEvent('themeChanged', function() {
+            // Обновляем стили при изменении темы
+            document.body.style.background = tg.themeParams.bg_color || '#ffffff';
+            document.body.style.color = tg.themeParams.text_color || '#000000';
+        });
+        
+        // Показываем информацию о приложении при загрузке
+        console.log('Telegram WebApp инициализирован');
+        console.log('Версия:', tg.version);
+        console.log('Платформа:', tg.platform);
+        console.log('Тема:', tg.colorScheme);
+    </script>
+</body>
+</html>
+

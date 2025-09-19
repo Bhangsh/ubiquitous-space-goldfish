@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GiftSpin - Мини-приложение</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        .header {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .gift-section {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .gift-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .gift-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .gift-description {
+            color: var(--tg-theme-hint-color, #666666);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .spin-button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        
+        .spin-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .spin-button:active {
+            transform: scale(0.95);
+        }
+        
+        .prizes-section {
+            margin-top: 20px;
+        }
+        
+        .prizes-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .prizes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .prize-item {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 2px solid var(--tg-theme-secondary-bg-color, #e9ecef);
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+        
+        .prize-item:hover {
+            border-color: var(--tg-theme-button-color, #2481cc);
+        }
+        
+        .prize-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .prize-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .prize-chance {
+            font-size: 10px;
+            color: var(--tg-theme-hint-color, #666666);
+        }
+        
+        .stats-section {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #2481cc);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666666);
+        }
+        
+        .history-section {
+            margin-top: 20px;
+        }
+        
+        .history-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-item {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--tg-theme-secondary-bg-color, #e9ecef);
+        }
+        
+        .history-prize {
+            font-weight: bold;
+        }
+        
+        .history-time {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666666);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid var(--tg-theme-secondary-bg-color, #f3f3f3);
+            border-top: 3px solid var(--tg-theme-button-color, #2481cc);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .result-content {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            margin: 20px;
+        }
+        
+        .result-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .result-description {
+            color: var(--tg-theme-hint-color, #666666);
+            margin-bottom: 20px;
+        }
+        
+        .result-button {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎁 GiftSpin</h1>
+            <p>Крутите колесо и выигрывайте призы!</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="gift-section">
+                <div class="gift-icon">🎰</div>
+                <div class="gift-title">Колесо удачи</div>
+                <div class="gift-description">
+                    У вас есть 3 бесплатных попытки в день.<br>
+                    Крутите колесо и выигрывайте ценные призы!
+                </div>
+                <button class="spin-button" onclick="spinWheel()">
+                    🎯 КРУТИТЬ КОЛЕСО
+                </button>
+            </div>
+            
+            <div class="stats-section">
+                <div class="stats-title">📊 Ваша статистика</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="attempts">3</div>
+                        <div class="stat-label">Попыток</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="wins">0</div>
+                        <div class="stat-label">Побед</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="prizes-section">
+                <div class="prizes-title">🏆 Доступные призы</div>
+                <div class="prizes-grid">
+                    <div class="prize-item">
+                        <div class="prize-icon">💰</div>
+                        <div class="prize-name">1000 рублей</div>
+                        <div class="prize-chance">5%</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-icon">🎁</div>
+                        <div class="prize-name">Подарок</div>
+                        <div class="prize-chance">15%</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-icon">⭐</div>
+                        <div class="prize-name">Бонус</div>
+                        <div class="prize-chance">25%</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-icon">💎</div>
+                        <div class="prize-name">VIP статус</div>
+                        <div class="prize-chance">10%</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-icon">🎫</div>
+                        <div class="prize-name">Скидка 50%</div>
+                        <div class="prize-chance">20%</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-icon">❌</div>
+                        <div class="prize-name">Удача в следующий раз</div>
+                        <div class="prize-chance">25%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="history-section">
+                <div class="history-title">📜 История выигрышей</div>
+                <div id="history-list">
+                    <div class="history-item">
+                        <div class="history-prize">🎁 Подарок</div>
+                        <div class="history-time">Сегодня 15:30</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-prize">⭐ Бонус</div>
+                        <div class="history-time">Вчера 20:15</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Крутим колесо...</div>
+        </div>
+        
+        <div class="result-modal" id="resultModal">
+            <div class="result-content">
+                <div class="result-icon" id="resultIcon">🎁</div>
+                <div class="result-title" id="resultTitle">Поздравляем!</div>
+                <div class="result-description" id="resultDescription">Вы выиграли подарок!</div>
+                <button class="result-button" onclick="closeResult()">Отлично!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        
+        // Расширяем приложение на весь экран
+        tg.expand();
+        
+        // Настраиваем главную кнопку
+        tg.MainButton.setText("Готово");
+        tg.MainButton.show();
+        
+        // Обработчик нажатия главной кнопки
+        tg.MainButton.onClick(function() {
+            tg.close();
+        });
+        
+        // Переменные для игры
+        let attempts = 3;
+        let wins = 0;
+        
+        // Призы с их вероятностями
+        const prizes = [
+            { icon: '💰', name: '1000 рублей', chance: 5 },
+            { icon: '🎁', name: 'Подарок', chance: 15 },
+            { icon: '⭐', name: 'Бонус', chance: 25 },
+            { icon: '💎', name: 'VIP статус', chance: 10 },
+            { icon: '🎫', name: 'Скидка 50%', chance: 20 },
+            { icon: '❌', name: 'Удача в следующий раз', chance: 25 }
+        ];
+        
+        // Функция кручения колеса
+        function spinWheel() {
+            if (attempts <= 0) {
+                alert('У вас закончились попытки! Попробуйте завтра.');
+                return;
+            }
+            
+            // Показываем загрузку
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.spin-button').disabled = true;
+            
+            // Имитация кручения
+            setTimeout(() => {
+                const result = getRandomPrize();
+                showResult(result);
+                
+                // Обновляем статистику
+                attempts--;
+                if (result.name !== 'Удача в следующий раз') {
+                    wins++;
+                }
+                
+                updateStats();
+                addToHistory(result);
+                
+                // Скрываем загрузку
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.spin-button').disabled = false;
+                
+                // Обновляем текст кнопки
+                if (attempts <= 0) {
+                    document.querySelector('.spin-button').textContent = 'Попытки закончились';
+                    document.querySelector('.spin-button').disabled = true;
+                }
+            }, 2000);
+        }
+        
+        // Получение случайного приза
+        function getRandomPrize() {
+            const random = Math.random() * 100;
+            let currentChance = 0;
+            
+            for (let prize of prizes) {
+                currentChance += prize.chance;
+                if (random <= currentChance) {
+                    return prize;
+                }
+            }
+            
+            return prizes[prizes.length - 1]; // Fallback
+        }
+        
+        // Показ результата
+        function showResult(prize) {
+            document.getElementById('resultIcon').textContent = prize.icon;
+            document.getElementById('resultTitle').textContent = 
+                prize.name === 'Удача в следующий раз' ? 'Попробуйте еще раз!' : 'Поздравляем!';
+            document.getElementById('resultDescription').textContent = 
+                `Вы выиграли: ${prize.name}`;
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+        
+        // Закрытие результата
+        function closeResult() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            document.getElementById('attempts').textContent = attempts;
+            document.getElementById('wins').textContent = wins;
+        }
+        
+        // Добавление в историю
+        function addToHistory(prize) {
+            const historyList = document.getElementById('history-list');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <div class="history-prize">${prize.icon} ${prize.name}</div>
+                <div class="history-time">Сегодня ${timeString}</div>
+            `;
+            
+            historyList.insertBefore(historyItem, historyList.firstChild);
+        }
+        
+        // Обработчик изменения темы
+        tg.onEvent('themeChanged', function() {
+            document.body.style.background = tg.themeParams.bg_color || '#ffffff';
+            document.body.style.color = tg.themeParams.text_color || '#000000';
+        });
+        
+        // Инициализация при загрузке
+        console.log('GiftSpin WebApp инициализирован');
+        console.log('Версия:', tg.version);
+        console.log('Платформа:', tg.platform);
+    </script>
+</body>
+</html>

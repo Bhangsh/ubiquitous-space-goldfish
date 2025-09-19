@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мини-приложение</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: transparent;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+        
+        /* User Profile Section */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: transparent;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .profile-avatar {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .avatar-fallback {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff885e 0%, #ff516a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 136, 94, 0.3);
+        }
+        
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #aaaaaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Days Card */
+        .days-card {
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .days-amount {
+            font-size: 42px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .days-label {
+            font-size: 14px;
+            color: #aaaaaa;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .days-balance {
+            font-size: 12px;
+            color: #888888;
+            margin-bottom: 14px;
+            font-weight: 400;
+        }
+        
+        .days-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .days-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .days-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 8px;
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            border: none;
+        }
+        
+        .action-item:hover {
+            background: transparent;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+        }
+        
+        .action-icon img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+        
+        .action-label {
+            font-size: 11px;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Servers Section */
+        .servers-section {
+            margin-bottom: 80px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .section-action {
+            font-size: 12px;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .section-action:hover {
+            color: #5a6fd8;
+        }
+        
+        .servers-card {
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .server-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+        }
+        
+        .server-item:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .server-flag {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .server-info {
+            flex: 1;
+        }
+        
+        .server-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+        
+        .server-location {
+            font-size: 11px;
+            color: #aaaaaa;
+            font-weight: 500;
+        }
+        
+        .server-stats {
+            text-align: right;
+        }
+        
+        .server-ping {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+        
+        .server-status {
+            font-size: 11px;
+            color: #00d4aa;
+            font-weight: 600;
+        }
+        
+        .server-status.offline {
+            color: #ff6b6b;
+        }
+        
+        .server-load {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        
+        .server-load.low {
+            color: #00d4aa;
+            background: rgba(0, 212, 170, 0.2);
+        }
+        
+        .server-load.medium {
+            color: #ffa726;
+            background: rgba(255, 167, 38, 0.2);
+        }
+        
+        .server-load.high {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+        }
+        
+        /* Payment Section */
+        .payment-section {
+            margin-bottom: 16px;
+        }
+        
+        .payment-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+        
+        .payment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .payment-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .payment-content {
+            flex: 1;
+        }
+        
+        .payment-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+        
+        .payment-description {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+        
+        .payment-arrow {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 375px) {
+            .days-amount {
+                font-size: 42px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .action-item {
+                padding: 12px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title"></div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- User Profile Section -->
+            <div class="user-profile">
+                <div class="profile-avatar">
+                    <img id="user-avatar-img" src="" alt="Аватар" class="avatar-image" style="display: none;">
+                    <div id="user-avatar-fallback" class="avatar-fallback">U</div>
+                </div>
+                <div class="profile-info">
+                    <div class="user-name" id="user-name">Пользователь</div>
+                </div>
+            </div>
+            
+            <!-- Days Card -->
+            <div class="days-card">
+                <div class="days-amount">0</div>
+                <div class="days-label">Осталось дней</div>
+                <div class="days-balance">Текущий баланс: 1.2 рубля</div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-item" onclick="showTopUp()">
+                    <div class="action-icon">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9ImN1cnJlbnRDb2xvciIgc3Ryb2tlPSJub25lIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGhlaWdodD0iMWVtIiB3aWR0aD0iMWVtIiBmb250LXNpemU9IjI0IiBjb2xvcj0iI2ZmZmZmZiIgc3R5bGU9InBvaW50ZXItZXZlbnRzOiBub25lOyI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNy4yMDcxIDYuNzkyODlDMTcuNTk3NiA3LjE4MzQyIDE3LjU5NzYgNy44MTY1OCAxNy4yMDcxIDguMjA3MTFMOS45MTQyMSAxNS41SDE0LjVDMTUuMDUyMyAxNS41IDE1LjUgMTUuOTQ3NyAxNS41IDE2LjVDMTUuNSAxNy4wNTIzIDE1LjA1MjMgMTcuNSAxNC41IDE3LjVINy41QzYuOTQ3NzIgMTcuNSA2LjUgMTcuMDUyMyA2LjUgMTYuNVY5LjVDNi41IDguOTQ3NzIgNi45NDc3MiA4LjUgNy41IDguNUM4LjA1MjggOC41IDguNSA4Ljk0NzcyIDguNSA5LjVWMTQuMDg1OEwxNS43OTI5IDYuNzkyODlDMTYuMTgzNCA2LjQwMjM3IDE2LjgxNjYgNi40MDIzNyAxNy4yMDcxIDYuNzkyODlaIiBmaWxsPSJjdXJyZW50Q29sb3IiPjwvcGF0aD48L3N2Zz4K" alt="Пополнить" />
+                    </div>
+                    <div class="action-label">Пополнить</div>
+                </div>
+                <div class="action-item" onclick="showWithdraw()">
+                    <div class="action-icon">
+                        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPg0KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNS4wMTExMiAxMS41NzQ3TDYuMjkyODggMTAuMjkyOUM2LjY4MzQxIDkuOTAyMzYgNy4zMTY1NyA5LjkwMjM2IDcuNzA3MSAxMC4yOTI5QzguMDk3NjIgMTAuNjgzNCA4LjA5NzYyIDExLjMxNjYgNy43MDcxIDExLjcwNzFMNC43MDcxIDE0LjcwNzFDNC41MTk1NiAxNC44OTQ2IDQuMjY1MjEgMTUgMy45OTk5OSAxNUMzLjczNDc3IDE1IDMuNDgwNDIgMTQuODk0NiAzLjI5Mjg4IDE0LjcwNzFMMC4yOTI4ODQgMTEuNzA3MUMtMC4wOTc2NDA2IDExLjMxNjYgLTAuMDk3NjQwNiAxMC42ODM0IDAuMjkyODg0IDEwLjI5MjlDMC42ODM0MDggOS45MDIzNiAxLjMxNjU3IDkuOTAyMzYgMS43MDcxIDEwLjI5MjlMMy4wMDgxIDExLjU5MzlDMy4yMjExNyA2LjI1OTMzIDcuNjEzMTcgMiAxMyAyQzE4LjUyMjkgMiAyMyA2LjQ3NzE1IDIzIDEyQzIzIDE3LjUyMjggMTguNTIyOSAyMiAxMyAyMkM5Ljg1ODE3IDIyIDcuMDU0MjkgMjAuNTQ5OSA1LjIyMjYzIDE4LjI4NjRDNC44NzUyMiAxNy44NTcxIDQuOTQxNjMgMTcuMjI3NCA1LjM3MDk2IDE2Ljg4QzUuODAwMjggMTYuNTMyNiA2LjQyOTk2IDE2LjU5OSA2Ljc3NzM3IDE3LjAyODNDOC4yNDU2MiAxOC44NDI3IDEwLjQ4NzMgMjAgMTMgMjBDMTcuNDE4MyAyMCAyMSAxNi40MTgzIDIxIDEyQzIxIDcuNTgxNzIgMTcuNDE4MyA0IDEzIDRDOC43MjQ0MSA0IDUuMjMyMjEgNy4zNTQxMiA1LjAxMTEyIDExLjU3NDdaTTEzIDVDMTMuNTUyMyA1IDE0IDUuNDQ3NzIgMTQgNlYxMS41ODU4TDE2LjcwNzEgMTQuMjkyOUMxNy4wOTc2IDE0LjY4MzQgMTcuMDk3NiAxNS4zMTY2IDE2LjcwNzEgMTUuNzA3MUMxNi4zMTY2IDE2LjA5NzYgMTUuNjgzNCAxNi4wOTc2IDE1LjI5MjkgMTUuNzA3MUwxMi4yOTI5IDEyLjcwNzFDMTIuMTA1NCAxMi41MTk2IDEyIDEyLjI2NTIgMTIgMTJWNkMxMiA1LjQ0NzcyIDEyLjQ0NzcgNSAxMyA1WiIgZmlsbD0iIzAwMDAwMCIvPg0KPC9zdmc+" alt="История" />
+                    </div>
+                    <div class="action-label">История</div>
+                </div>
+                <div class="action-item" onclick="showKeys()">
+                    <div class="action-icon">
+                        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPgo8c3ZnIGZpbGw9IiMwMDAwMDAiIHdpZHRoPSI4MDBweCIgaGVpZ2h0PSI4MDBweCIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHRpdGxlPmlvbmljb25zLXY1LW88L3RpdGxlPjxwYXRoIGQ9Ik0yMTguMSwxNjcuMTdjMCwxMywwLDI1LjYsNC4xLDM3LjQtNDMuMSw1MC42LTE1Ni45LDE4NC4zLTE2Ny41LDE5NC41YTIwLjE3LDIwLjE3LDAsMCwwLTYuNywxNWMwLDguNSw1LjIsMTYuNyw5LjYsMjEuMyw2LjYsNi45LDM0LjgsMzMsNDAsMjgsMTUuNC0xNSwxOC41LTE5LDI0LjgtMjUuMiw5LjUtOS4zLTEtMjguMywyLjMtMzZzNi44LTkuMiwxMi41LTEwLjQsMTUuOCwyLjksMjMuNywzYzguMy4xLDEyLjgtMy40LDE5LTkuMiw1LTQuNiw4LjYtOC45LDguNy0xNS42LjItOS0xMi44LTIwLjktMy4xLTMwLjRzMjMuNyw2LjIsMzQsNSwyMi44LTE1LjUsMjQuMS0yMS42LTExLjctMjEuOC05LjctMzAuN2MuNy0zLDYuOC0xMCwxMS40LTExczI1LDYuOSwyOS42LDUuOWM1LjYtMS4yLDEyLjEtNy4xLDE3LjQtMTAuNCwxNS41LDYuNywyOS42LDkuNCw0Ny43LDkuNCw2OC41LDAsMTI0LTUzLjQsMTI0LTExOS4yUzQwOC41LDQ4LDM0MCw0OCwyMTguMSwxMDEuMzcsMjE4LjEsMTY3LjE3Wk00MDAsMTQ0YTMyLDMyLDAsMSwxLTMyLTMyQTMyLDMyLDAsMCwxLDQwMCwxNDRaIi8+PC9zdmc+" alt="Ключи" />
+                    </div>
+                    <div class="action-label">Ключи</div>
+                </div>
+                <div class="action-item" onclick="showReferral()">
+                    <div class="action-icon">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTgiIGN5PSI1IiByPSIzIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSI2IiBjeT0iMTIiIHI9IjMiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjE4IiBjeT0iMTkiIHI9IjMiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxsaW5lIHgxPSI4LjU5IiB5MT0iMTMuNTEiIHgyPSIxNS40MiIgeTI9IjE3LjQ5IiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgo8bGluZSB4MT0iMTUuNDEiIHkxPSI2LjUxIiB4Mj0iOC41OSIgeTI9IjEwLjQ5IiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K" alt="Реферальная система" />
+                    </div>
+                    <div class="action-label">Реф. система</div>
+                </div>
+            </div>
+            
+            <!-- Payment Card -->
+            <div class="payment-section">
+                <div class="payment-card" onclick="showPayment()">
+                    <div class="payment-icon">💳</div>
+                    <div class="payment-content">
+                        <div class="payment-title">Оплата через СБП</div>
+                        <div class="payment-description">Оплачивайте любые покупки в любое время.</div>
+                    </div>
+                    <div class="payment-arrow">›</div>
+                </div>
+            </div>
+            
+            <!-- Servers Section -->
+            <div class="servers-section">
+                <div class="section-header">
+                    <div class="section-title">Статистика использования серверов</div>
+                    <div class="section-action" onclick="showAllServers()">СКРЫТЬ МЕЛКИЕ БАЛАНСЫ</div>
+                </div>
+                
+                <div class="servers-card">
+                    <div class="server-item">
+                        <div class="server-flag" style="background: #ff6b6b;">🇷🇺</div>
+                        <div class="server-info">
+                            <div class="server-name">Russia Moscow</div>
+                            <div class="server-location">Москва, Россия</div>
+                        </div>
+                        <div class="server-stats">
+                            <div class="server-ping">12ms</div>
+                            <div class="server-status">Онлайн</div>
+                            <div class="server-load low">Низкая нагрузка</div>
+                        </div>
+                    </div>
+                    
+                    <div class="server-item">
+                        <div class="server-flag" style="background: #667eea;">🇺🇸</div>
+                        <div class="server-info">
+                            <div class="server-name">USA New York</div>
+                            <div class="server-location">Нью-Йорк, США</div>
+                        </div>
+                        <div class="server-stats">
+                            <div class="server-ping">45ms</div>
+                            <div class="server-status">Онлайн</div>
+                            <div class="server-load medium">Средняя нагрузка</div>
+                        </div>
+                    </div>
+                    
+                    <div class="server-item">
+                        <div class="server-flag" style="background: #f093fb;">🇩🇪</div>
+                        <div class="server-info">
+                            <div class="server-name">Germany Berlin</div>
+                            <div class="server-location">Берлин, Германия</div>
+                        </div>
+                        <div class="server-stats">
+                            <div class="server-ping">28ms</div>
+                            <div class="server-status">Онлайн</div>
+                            <div class="server-load low">Низкая нагрузка</div>
+                        </div>
+                    </div>
+                    
+                    <div class="server-item">
+                        <div class="server-flag" style="background: #4facfe;">🇯🇵</div>
+                        <div class="server-info">
+                            <div class="server-name">Japan Tokyo</div>
+                            <div class="server-location">Токио, Япония</div>
+                        </div>
+                        <div class="server-stats">
+                            <div class="server-ping">67ms</div>
+                            <div class="server-status">Онлайн</div>
+                            <div class="server-load high">Высокая нагрузка</div>
+                        </div>
+                    </div>
+                    
+                    <div class="server-item">
+                        <div class="server-flag" style="background: #43e97b;">🇬🇧</div>
+                        <div class="server-info">
+                            <div class="server-name">UK London</div>
+                            <div class="server-location">Лондон, Великобритания</div>
+                        </div>
+                        <div class="server-stats">
+                            <div class="server-ping">35ms</div>
+                            <div class="server-status offline">Офлайн</div>
+                            <div class="server-load medium">Технические работы</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Загрузка данных...</div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        
+        // Расширяем приложение на весь экран
+        tg.expand();
+        
+        // Скрываем главную кнопку
+        tg.MainButton.hide();
+        
+        
+        // Функции действий
+        function showExtend() {
+            tg.showAlert('Функция продления будет доступна в следующем обновлении');
+        }
+        
+        function showHistory() {
+            tg.showAlert('История использования будет доступна в следующем обновлении');
+        }
+        
+        function showTopUp() {
+            tg.showAlert('Функция пополнения будет доступна в следующем обновлении');
+        }
+        
+        function showWithdraw() {
+            tg.showAlert('Функция вывода будет доступна в следующем обновлении');
+        }
+        
+        function showReferral() {
+            tg.showAlert('Реферальная система будет доступна в следующем обновлении');
+        }
+        
+        function showKeys() {
+            tg.showAlert('Управление ключами для серверов будет доступно в следующем обновлении');
+        }
+        
+        function showPayment() {
+            tg.showAlert('Оплата через СБП будет доступна в следующем обновлении');
+        }
+        
+        function showAllServers() {
+            tg.showAlert('Полный список серверов будет доступен в следующем обновлении');
+        }
+        
+        
+        // Утилиты
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // Обработчик изменения темы
+        tg.onEvent('themeChanged', function() {
+            const isDark = tg.colorScheme === 'dark';
+            document.body.style.background = isDark ? '#0a0a0a' : '#ffffff';
+            document.body.style.color = isDark ? '#ffffff' : '#000000';
+        });
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('WebApp инициализирован');
+            console.log('Версия:', tg.version);
+            console.log('Платформа:', tg.platform);
+            console.log('Пользователь:', tg.initDataUnsafe?.user);
+            
+            // Получаем данные пользователя
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                const avatarImg = document.getElementById('user-avatar-img');
+                const avatarFallback = document.getElementById('user-avatar-fallback');
+                const nameElement = document.getElementById('user-name');
+                
+                // Устанавливаем имя пользователя
+                if (user.first_name) {
+                    nameElement.textContent = user.first_name;
+                } else if (user.username) {
+                    nameElement.textContent = '@' + user.username;
+                }
+                
+                // Устанавливаем аватар
+                if (user.photo_url) {
+                    // Показываем реальное фото пользователя
+                    avatarImg.src = user.photo_url;
+                    avatarImg.style.display = 'block';
+                    avatarFallback.style.display = 'none';
+                } else {
+                    // Показываем fallback с первой буквой имени
+                    avatarImg.style.display = 'none';
+                    avatarFallback.style.display = 'flex';
+                    
+                    if (user.first_name) {
+                        avatarFallback.textContent = user.first_name.charAt(0).toUpperCase();
+                    } else if (user.username) {
+                        avatarFallback.textContent = user.username.charAt(0).toUpperCase();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
